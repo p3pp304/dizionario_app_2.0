@@ -1,17 +1,42 @@
 import streamlit as st
+from config_db import init_db, aggiungi_parola, leggi_tutto
 
-# Questo crea un titolo grande
-st.title("ENGLISH VOCABULARY")
+# --- 2. INTERFACCIA ---
+st.set_page_config(page_title="English Dictionary", page_icon="☁️")
+st.title("☁️ English Dictionary Cloud")
 
-# Questo scrive del testo normale
-st.write("Benvenuto! Qui raccoglieremo le parole nuove.")
+# Inizializza DB all'avvio
+try:
+    init_db()
+except Exception as e:
+    st.error(f"Errore di connessione al database: {e}")
+    st.stop()
 
-# Crea una casella di testo dove l'utente può scrivere
-nuova_parola = st.text_input("Inserisci una nuova parola:")
+# TABS
+tab1, tab2 = st.tabs(["📝 Aggiungi", "🔍 Cerca"])
 
-# Possiamo subito reagire a quello che l'utente scrive
-if nuova_parola:
-    st.write(f"Hai scritto: {nuova_parola}")
+with tab1:
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        p = st.text_input("Parola")
+        t = st.selectbox("Tipo", ["n.m.", "n.f.", "agg.", "v.", "espr."])
+    with col2:
+        d = st.text_area("Definizione")
+        
+    if st.button("Salva in Cloud"):
+        if p and d:
+            aggiungi_parola(p, t, d)
+        else:
+            st.warning("Compila i campi!")
 
-# Mette un titolo nella barra laterale a sinistra
-st.sidebar.title("Menu")
+with tab2:
+    st.markdown("### Dati dal Cloud")
+    dati = leggi_tutto()
+    if dati:
+        for riga in dati:
+            with st.expander(f"{riga[0]} ({riga[1]})"):
+                st.write(riga[2])
+    else:
+        st.info("Database vuoto.")
+        
+        
