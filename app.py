@@ -12,15 +12,26 @@ except Exception as e:
     st.error(f"Errore di connessione al database: {e}")
     st.stop()
 
-col1, col2 = st.columns([1, 2])
+#INSERIMENTO MANUALE PAROLA
+col1, col2 = st.columns([4, 1])
 with col1:
     p = st.text_input("Parola")
-    t = st.selectbox("Tipo", ["n.m.", "n.f.", "agg.", "v.", "espr."])
 with col2:
-    d = st.text_area("Definizione")
-    e= st.text_input("Espressione")
+    t = st.selectbox("Tipo", ["n.m.", "n.f.", "agg.", "v.", "espr."])
+
+d = st.text_area("Definizione")
+
+st.markdown("Dettagli opzionali")
+col3, col4 = st.columns([1, 1])
+with col3:
     s= st.text_input("Sinonimi")
+with col4:
     c= st.text_input("Contrari")
+
+col5, col6 = st.columns([1, 1])
+with col5:
+    e= st.text_input("Espressione")
+with col6:
     n= st.text_input("Note")
 
 if st.button("Aggiungi parola"):
@@ -41,7 +52,7 @@ if dati:
             if riga[6]:
                 st.write(f"Contrari: {riga[6]}")
             if riga[7]:
-                st.write(f"Note: {riga[7]}")
+                st.write(f"{riga[7]}")
 else:
     st.info("Database vuoto.")
         
