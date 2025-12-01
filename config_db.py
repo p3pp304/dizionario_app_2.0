@@ -4,8 +4,7 @@ import psycopg2
 # --- 1. CONFIGURAZIONE DATABASE ---
 # Funzione per ottenere la connessione sicura usando i secrets
 def get_connection():
-    # Legge la stringa dal file .streamlit/secrets.toml
-    db_url = st.secrets["connections"]["neon"]["url"]
+    db_url = st.secrets["connections"]["neon"]["url"]    # Legge la stringa dal file .streamlit/secrets.toml
     return psycopg2.connect(db_url)
 
 def init_db():
@@ -33,14 +32,11 @@ def aggiungi_parola(parola, tipo, definizione, espressione, sinonimi, contrari, 
             "INSERT INTO vocaboli (parola, tipo, definizione, espressione, sinonimi, contrari, note) VALUES (%s, %s, %s, %s, %s, %s, %s)",
             (parola, tipo, definizione, espressione, sinonimi, contrari, note)
         )
-        # 4. Conferma l'operazione. Senza questo, i dati non vengono salvati davvero.
-        conn.commit()
+        conn.commit()     # 4. Conferma l'operazione. Senza questo, i dati non vengono salvati davvero.
         st.success(f"Aggiunto su Neon: {parola}")
-    except psycopg2.errors.UniqueViolation: # --- GESTIONE DUPLICATI ---
+    except psycopg2.errors.UniqueViolation:    # --- GESTIONE DUPLICATI ---
         st.error(f"La parola '{parola}' esiste già nel database!")
-        # Quando c'è un errore, la connessione rimane "sporca" o bloccata.
-        # Il rollback dice: "Annulla tutto quello che stavi provando a fare e torna pulito".
-        conn.rollback() # Importante in Postgres se c'è un errore
+        conn.rollback() # Il rollback dice: "Annulla tutto quello che stavi provando a fare e torna pulito".
     except Exception as e:  # --- GESTIONE ALTRI ERRORI ---
         st.error(f"Errore: {e}")
     finally: # Questo blocco viene eseguito SEMPRE
