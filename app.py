@@ -30,9 +30,9 @@ with col4:
 
 col5, col6 = st.columns([1, 1])
 with col5:
-    e= st.text_input("Espressione")
+    e= st.text_area("Espressione")
 with col6:
-    n= st.text_input("Note")
+    n= st.text_area("Note")
 
 if st.button("Aggiungi parola"):
     if p and d:
