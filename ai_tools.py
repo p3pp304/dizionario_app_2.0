@@ -9,7 +9,7 @@ def configura_gemini():
 
 def analizza_con_gemini(testo_grezzo):
     configura_gemini()
-    model = genai.GenerativeModel(' models/gemini-3-pro-preview') # Usiamo il modello veloce ed economico
+    model = genai.GenerativeModel('models/gemini-2.5-flash-preview-09-2025') # Usiamo il modello veloce ed economico
     
     #--- IL PROMPT (LE ISTRUZIONI) ---
     # Usiamo una f-string (f"...") per inserire il testo dell'utente dentro le istruzioni.
@@ -38,13 +38,8 @@ def analizza_con_gemini(testo_grezzo):
         
         # A questo punto 'testo_risposta' è una stringa (testo semplice), non ancora una lista.
         # Esempio di cosa arriva: "```json [ {"parola": "List", ...} ] ```"
-
-        # 3. PULIZIA (SANITIZATION)
-        # Spesso le AI avvolgono il codice dentro simboli Markdown (```json ... ```).
-        # Questi simboli mandano in crash la conversione JSON.
-        # .replace() li cancella, lasciando solo i dati puri: "[ { ... } ]"
+        # Questi simboli(```json) mandano in crash la conversione JSON.
         testo_pulito = testo_risposta.replace("```json", "").replace("```", "").strip()
-        
         # Trasformiamo la stringa in una vera lista Python
         dati_json = json.loads(testo_pulito)
         return dati_json
@@ -54,7 +49,7 @@ def analizza_con_gemini(testo_grezzo):
         return [] # invece di far crashare l'app, mostriamo l'errore e restituiamo una lista vuota.
     
 
-"""*/LISTA CAMPPI RICHIESTI:
+""" LISTA CAMPPI RICHIESTI:
 - models/gemini-2.5-flash-image
 - models/gemini-2.5-flash-preview-09-2025
 - models/gemini-2.5-flash-lite-preview-09-2025
