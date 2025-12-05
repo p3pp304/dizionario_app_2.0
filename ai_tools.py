@@ -20,10 +20,10 @@ def analizza_con_gemini(testo_grezzo):
     Restituisci ESCLUSIVAMENTE una lista JSON valida. Non aggiungere testo prima o dopo, solo il JSON.
     Ogni oggetto nel JSON deve avere queste chiavi esatte:
     - "parola": il termine (in inglese come nel testo o se è in italiano scrivilo in inglese)
-    - "tipo": abbreviazione grammaticale (es. n.m., n.f., v., agg., espr.)
+    - "tipo": abbreviazione grammaticale ["n.m.", "n.f.", "agg.", "v.", "espr."]
     - "definizione": una definizione chiara e sintetica in italiano, il più delle volte è la traduzione.
-    - "sinonimi": (opzionale) una lista di sinonimi separati da virgola
-    - "contrari": (opzionale) una lista di contrari separati da virgola
+    - "sinonimi": (opzionale) una lista di sinonimi separati da virgola in inglese
+    - "contrari": (opzionale) una lista di contrari separati da virgola in inglese
     - "espressione": (opzionale) un'espressione idiomatica o frase fatta che include la parola
     - "note": (opzionale) qualsiasi altra informazione rilevante
     Assicurati che il JSON sia ben formattato e valido.

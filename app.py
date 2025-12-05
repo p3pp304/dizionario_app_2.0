@@ -2,6 +2,43 @@ import streamlit as st
 from config_db import init_db, aggiungi_parola, leggi_tutto
 from ai_tools import analizza_con_gemini
 
+# --- 1. FUNZIONE POP-UP SALVATAGGIO CON PASSWORD ---
+@st.dialog("🔐 Conferma Salvataggio") #@ (decoratore) trasforma la funzione che c'è sotto in un pop-up che oscura il resto della pagina
+def pop_up_salvataggio(dati_da_salvare):
+    st.write(f"Stai per aggiungere **{len(dati_da_salvare)}** nuovi termini al database.")
+    st.warning("Questa operazione è definitiva.")
+
+    # Input password dentro il pop-up
+    password = st.text_input("Inserisci Password", type="password")
+    
+    if st.button("Conferma", type="primary"):
+        if password == st.secrets["admin"]["password"]:
+            
+            # --- LOGICA DI SALVATAGGIO ---
+            progress_bar = st.progress(0)
+            total = len(dati_da_salvare)
+
+            for i, item in enumerate(dati_da_salvare):
+                aggiungi_parola(
+                    item('parola'), 
+                    item('tipo'), 
+                    item('definizione'),
+                    item.get('espressione', ''), 
+                    item.get('sinonimi', ''),
+                    item.get('contrari', ''),
+                    item.get('note', '')
+                )
+                progress_bar.progress((i + 1) / total)
+            
+            st.success("✅ Salvataggio completato!")
+            
+            # Pulizia e Riavvio
+            st.session_state.risultati_ai = None
+            st.rerun()
+            
+        else:
+            st.error("❌ Password errata.")
+
 
 # --- 2. INTERFACCIA ---
 st.set_page_config(page_title="English Dictionary", page_icon="☁️")
@@ -14,6 +51,7 @@ except Exception as e:
     st.error(f"Errore di connessione al database: {e}")
     st.stop()
 
+# ---- TABS PER I DUE MODI DI INSERIMENTO
 tab_ai, tab_man = st.tabs(["Aggiungi lista di parole con AI", "Aggiungi parola manualmente"])
 
 # 1. MODO AI (La novità!)
@@ -26,6 +64,8 @@ with tab_ai:
     if "risultati_ai" not in st.session_state: # Qui controlliamo: "Esiste già un cassetto per i risultati? Se no, crealo vuoto."
         st.session_state.risultati_ai = None  # Variabile di stato (memoria a lungo termine della sessione di lavoro) per salvare i risultati temporanei
 
+
+                
     # 3. IL PULSANTE DI ANALISI (CHIAMATA API)
     if st.button("✨ Analizza e Estrai"):
         with st.spinner("Gemini sta leggendo i tuoi appunti..."):
@@ -38,30 +78,30 @@ with tab_ai:
 
         # st.data_editor crea una tabella interattiva (come Excel).
         # num_rows="dynamic" ti permette anche di AGGIUNGERE o CANCELLARE righe!
-        dati_modificati = st.data_editor(
-            st.session_state.risultati_ai, 
+        dati_modificati = st.data_editor(            
+            st.session_state.risultati_ai,  # Passiamo la lista direttamente
             num_rows="dynamic",
-            use_container_width=True
+            use_container_width=True,
+            # Nota: column_config funziona anche con le liste!
+            column_config={
+                "parola": st.column_config.TextColumn("Termine", required=True),
+                "tipo": st.column_config.SelectboxColumn("Tipo", options=["n.m.", "n.f.", "v.", "agg.", "espr."], required=True),
+                "definizione": st.column_config.TextColumn("📖 Definizione", width="large", required=True)
+            },
+            hide_index=True
         )
         
+        
         # 5. SALVATAGGIO NEL DATABASE
-        col_save, col_discard = st.columns([1, 4])
+        col_save, col_discard = st.columns([2, 4])
         with col_save:
-            if st.button("💾 Conferma e Salva Tutto"):
-                # Creiamo una barra di progresso (parte da 0%)
-                progress_bar = st.progress(0)
-                total = len(dati_modificati)
-
-                # Ciclo FOR per salvare ogni singola parola trovata. enumerate(lista) ci dà sia l'indice (i) che l'oggetto (item)
-                for i, item in enumerate(dati_modificati):
-                    # Salviamo nel DB uno per uno
-                    aggiungi_parola(item['parola'], item['tipo'], item['definizione'], 
-                                   item.get('espressione', ''), item.get('sinonimi', ''), item.get('contrari', ''), item.get('note', ''))
-                    progress_bar.progress((i + 1) / total)  # Aggiorna la barra di progresso
-
-                st.success("Tutti i termini sono stati salvati")
-                st.session_state.risultati_ai = None # Reset
-                st.rerun()
+            # IL NUOVO BOTTONE SEMPLICE
+            # Quando lo clicchi, apre la funzione pop-up definita sopra
+            if st.button("💾 Salva tutto nel Database", use_container_width=True):
+                if len(dati_modificati) > 0:
+                    pop_up_salvataggio(dati_modificati)
+                else:
+                    st.warning("La tabella è vuota!")
 
 #INSERIMENTO MANUALE PAROLA            
 with tab_man:
