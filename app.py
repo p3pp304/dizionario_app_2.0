@@ -1,5 +1,5 @@
 import streamlit as st
-from config_db import init_db, aggiungi_parola, leggi_tutto
+from config_db import init_db, aggiungi_parola, leggi_tutto, cerca_vocaboli
 from ai_tools import analizza_con_gemini
 
 # --- 1. FUNZIONE POP-UP SALVATAGGIO CON PASSWORD ---
@@ -133,9 +133,40 @@ with tab_man:
 # 2. VISUALIZZA IL DATABASE
 st.markdown("Vocabulary")
 dati = leggi_tutto()
+
+# 1. BARRA DI RICERCA E FILTRI
+# Usiamo le colonne per mettere tutto sulla stessa riga
+col_search, col_filter = st.columns([4, 1])
+
+with col_search:
+    # Input di ricerca principale
+    search_text = st.text_input("Cosa stai cercando?", placeholder="Es. Funzioni, Liste, Cicli...", label_visibility="collapsed")
+
+with col_filter:
+    # Filtro Multiplo per Tipo
+    tipi_selezionati = st.multiselect(
+        "Filtra per:", 
+        ["n.m.", "n.f.", "v.", "agg.", "code", "espr."],
+        placeholder="Tutti i tipi"
+    )
+
+# 2. LOGICA DI RICERCA
+# Se la barra è vuota, mostriamo tutto? O niente? 
+# Di solito è meglio mostrare tutto o gli ultimi aggiunti.
+# Qui usiamo la funzione creata prima:
+
+dati_s = cerca_vocaboli(search_text, tipi_selezionati)
+
+# 3. VISUALIZZAZIONE RISULTATI (Dashboard Style)
+if not dati_s:
+    st.info("Nessun termine trovato. Prova a cercare qualcos'altro!")
+else:
+    st.write(f"Trovati **{len(dati_s)}** termini.")
+    dati = dati_s
+    
 if dati:
-    for riga in dati:
-        with st.expander(f"{riga[0]} {riga[1]} ({riga[3]})"):
+    for i, riga in enumerate(dati):
+        with st.expander(f" {i+1} {riga[1]} ({riga[3]})"):
             st.write(f"Definizione: {riga[2]}")
             if riga[4]:
                 st.write(f"Espressione: {riga[4]}")
