@@ -1,6 +1,7 @@
 import streamlit as st
 from config_db import init_db, aggiungi_parola, leggi_tutto, cerca_vocaboli
 from ai_tools import analizza_con_gemini
+from view import visualizza_vocaboli        
 
 # --- 1. FUNZIONE POP-UP SALVATAGGIO CON PASSWORD ---
 @st.dialog("🔐 Conferma Salvataggio") #@ (decoratore) trasforma la funzione che c'è sotto in un pop-up che oscura il resto della pagina
@@ -136,11 +137,11 @@ dati = leggi_tutto()
 
 # 1. BARRA DI RICERCA E FILTRI
 # Usiamo le colonne per mettere tutto sulla stessa riga
-col_search, col_filter = st.columns([4, 1])
+col_search, col_filter = st.columns([3, 1])
 
 with col_search:
     # Input di ricerca principale
-    search_text = st.text_input("Cosa stai cercando?", placeholder="Es. Funzioni, Liste, Cicli...", label_visibility="collapsed")
+    search_text = st.text_input("Inserisci la parola da cercare", placeholder="Es. Funzioni, Liste, Cicli...")
 
 with col_filter:
     # Filtro Multiplo per Tipo
@@ -164,19 +165,6 @@ else:
     st.write(f"Trovati **{len(dati_s)}** termini.")
     dati = dati_s
     
-if dati:
-    for i, riga in enumerate(dati):
-        with st.expander(f" {i+1} {riga[1]} ({riga[3]})"):
-            st.write(f"Definizione: {riga[2]}")
-            if riga[4]:
-                st.write(f"Espressione: {riga[4]}")
-            if riga[5]:
-                st.write(f"Sinonimi: {riga[5]}")
-            if riga[6]:
-                st.write(f"Contrari: {riga[6]}")
-            if riga[7]:
-                st.write(f"{riga[7]}")
-else:
-    st.info("Database vuoto.")
+visualizza_vocaboli(dati)
         
         
