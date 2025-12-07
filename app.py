@@ -1,7 +1,7 @@
 import streamlit as st
 from config_db import init_db, aggiungi_parola, leggi_tutto, cerca_vocaboli
 from ai_tools import analizza_con_gemini
-from view import visualizza_vocaboli        
+from view import visualizza_a_griglia, visualizza_per_lettera        
 
 # --- 1. FUNZIONE POP-UP SALVATAGGIO CON PASSWORD ---
 @st.dialog("🔐 Conferma Salvataggio") #@ (decoratore) trasforma la funzione che c'è sotto in un pop-up che oscura il resto della pagina
@@ -159,12 +159,12 @@ with col_filter:
 dati_s = cerca_vocaboli(search_text, tipi_selezionati)
 
 # 3. VISUALIZZAZIONE RISULTATI (Dashboard Style)
-if not dati_s:
-    st.info("Nessun termine trovato. Prova a cercare qualcos'altro!")
-else:
-    st.write(f"Trovati **{len(dati_s)}** termini.")
+if search_text:
     dati = dati_s
-    
-visualizza_vocaboli(dati)
+    st.write(f"Trovati **{len(dati)}** termini.")
+    visualizza_a_griglia(dati)
+else:   
+    st.write(f"Trovati **{len(dati)}** termini.")
+    visualizza_per_lettera(dati)
         
         
