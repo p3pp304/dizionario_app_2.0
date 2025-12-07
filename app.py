@@ -20,9 +20,9 @@ def pop_up_salvataggio(dati_da_salvare):
 
             for i, item in enumerate(dati_da_salvare):
                 aggiungi_parola(
-                    item('parola'), 
-                    item('tipo'), 
-                    item('definizione'),
+                    item['parola'], 
+                    item['tipo'], 
+                    item['definizione'],
                     item.get('espressione', ''), 
                     item.get('sinonimi', ''),
                     item.get('contrari', ''),

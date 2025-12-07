@@ -10,7 +10,6 @@ def get_connection():
 def init_db():
     conn = get_connection()  # 1. Chiama la funzione sopra per aprire la linea
     cur = conn.cursor()      # 2. Crea il "Cursore"
-    # 3. Esegue il comando SQL (Il progetto di costruzione)
     # Creiamo la tabella se non esiste (Sintassi PostgreSQL)
     cur.execute('''
         CREATE TABLE IF NOT EXISTS vocaboli (
@@ -33,7 +32,7 @@ def aggiungi_parola(parola, tipo, definizione, espressione, sinonimi, contrari, 
             (parola, tipo, definizione, espressione, sinonimi, contrari, note)
         )
         conn.commit()     # 4. Conferma l'operazione. Senza questo, i dati non vengono salvati davvero.
-        st.success(f"Aggiunto su Neon: {parola}")
+        st.success(f"Aggiunto al vocabolario: {parola}")
     except psycopg2.errors.UniqueViolation:    # --- GESTIONE DUPLICATI ---
         st.error(f"La parola '{parola}' esiste già nel database!")
         conn.rollback() # Il rollback dice: "Annulla tutto quello che stavi provando a fare e torna pulito".
@@ -45,7 +44,35 @@ def aggiungi_parola(parola, tipo, definizione, espressione, sinonimi, contrari, 
 def leggi_tutto():
     conn = get_connection() # 1. Apre la connessione
     cur = conn.cursor()     # 2. Chiama il cursore
-    cur.execute('SELECT * FROM vocaboli') # 3. Esegue il comando SQL(SELECT * significa "Dammi tutte le colonne";  # FROM vocaboli significa "Dalla tabella vocaboli") 
+    cur.execute('SELECT * FROM vocaboli ORDER BY parola ASC') # 3. Esegue il comando SQL(SELECT * significa "Dammi tutte le colonne";  # FROM vocaboli significa "Dalla tabella vocaboli") 
     dati = cur.fetchall() # # fetchall() ("prendi tutto") li scarica effettivamente e li mette
     conn.close()
     return dati
+
+
+def cerca_vocaboli(testo_ricerca, filtro_tipo=None):
+    conn = get_connection() # 1. Apre la connessione
+    cur = conn.cursor()     # 2. Chiama il cursore
+    
+    # Query Base: Cerca sia nella parola che nella definizione
+    query = """
+        SELECT *
+        FROM vocaboli 
+        WHERE (parola ILIKE %s OR definizione ILIKE %s)
+    """    # ILIKE con % cerca il testo parziale ignorando maiuscole/minuscole
+    params = [f"%{testo_ricerca}%", f"%{testo_ricerca}%"]
+    
+    # Se l'utente ha selezionato dei filtri (es. solo "verbi")
+    if filtro_tipo:
+        # Aggiungiamo un pezzo alla query SQL
+        query += " AND tipo = ANY(%s)"
+        params.append(filtro_tipo)
+    
+    # Ordiniamo alfabeticamente
+    query += " ORDER BY parola ASC"
+    
+    cur.execute(query, tuple(params))
+    risultati = cur.fetchall()
+    
+    conn.close()
+    return risultati
