@@ -3,10 +3,15 @@ import psycopg2
 
 # --- 1. CONFIGURAZIONE DATABASE ---
 # Funzione per ottenere la connessione sicura usando i secrets
+# @st.cache_resource: Mantiene l'oggetto "connessione" vivo in memoria.
+# Non lo ricrea ogni volta che l'app viene ricaricata.
+@st.cache_resource
 def get_connection():
     db_url = st.secrets["connections"]["neon"]["url"]    # Legge la stringa dal file .streamlit/secrets.toml
     return psycopg2.connect(db_url)
 
+#NON chiudere mai la connessione (togli conn.close())--> rendiamo il tutto più veloce
+# Chiudi solo il cursore (cur.close())
 def init_db():
     conn = get_connection()  # 1. Chiama la funzione sopra per aprire la linea
     cur = conn.cursor()      # 2. Crea il "Cursore"
@@ -20,7 +25,6 @@ def init_db():
     ''')
     conn.commit()  # 4. Salva le modifiche
     cur.close()    # 5. Chiude il cursore
-    conn.close()   # 6. Chiude la connessione
 
 def aggiungi_parola(parola, tipo, definizione, espressione, sinonimi, contrari, note):
     conn = get_connection() # 1. Apre la connessione
@@ -38,15 +42,15 @@ def aggiungi_parola(parola, tipo, definizione, espressione, sinonimi, contrari, 
         conn.rollback() # Il rollback dice: "Annulla tutto quello che stavi provando a fare e torna pulito".
     except Exception as e:  # --- GESTIONE ALTRI ERRORI ---
         st.error(f"Errore: {e}")
-    finally: # Questo blocco viene eseguito SEMPRE
-        conn.close()
+    finally: # Questo blocco viene eseguito SEMPRE, sia in caso di successo che di errore
+        cur.close()    # 5. Chiude il cursore
 
 def leggi_tutto():
     conn = get_connection() # 1. Apre la connessione
     cur = conn.cursor()     # 2. Chiama il cursore
     cur.execute('SELECT * FROM vocaboli ORDER BY parola ASC') # 3. Esegue il comando SQL(SELECT * significa "Dammi tutte le colonne";  # FROM vocaboli significa "Dalla tabella vocaboli") 
-    dati = cur.fetchall() # # fetchall() ("prendi tutto") li scarica effettivamente e li mette
-    conn.close()
+    dati = cur.fetchall() # # fetchall() ("prendi tutto") li scarica effettivamente e li mette in una lista di tuple
+    cur.close()           # 4. Chiude il cursore
     return dati
 
 
@@ -74,5 +78,11 @@ def cerca_vocaboli(testo_ricerca, filtro_tipo=None):
     cur.execute(query, tuple(params))
     risultati = cur.fetchall()
     
-    conn.close()
+    cur.close()           # 4. Chiude il cursore
     return risultati
+
+# ttl=600 significa: "Ricordati questi dati per 10 minuti (600 secondi)"
+# Se ricarichi la pagina entro 10 min, non chiama Neon, legge dalla RAM.
+@st.cache_data(ttl=600)
+def leggi_tutto_cache():
+    return leggi_tutto() # Chiama la funzione vera

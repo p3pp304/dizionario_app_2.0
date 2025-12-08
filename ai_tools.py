@@ -7,6 +7,8 @@ def configura_gemini():
     api_key = st.secrets["gemini"]["api_key"]  # 1. Recuperiamo la chiave API dal file nascosto (.streamlit/secrets.toml)
     genai.configure(api_key=api_key)  # 2. Inseriamo la chiave nella libreria. Da ora in poi, siamo autorizzati.
 
+# Se il testo_input è lo stesso, restituisce subito il risultato salvato prima.
+@st.cache_data(show_spinner=False)
 def analizza_con_gemini(testo_grezzo):
     configura_gemini()
     model = genai.GenerativeModel('models/gemini-2.5-flash-preview-09-2025') # Usiamo il modello veloce ed economico
