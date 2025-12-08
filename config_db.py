@@ -53,6 +53,22 @@ def leggi_tutto():
     cur.close()           # 4. Chiude il cursore
     return dati
 
+# 2. CACHE DEI DATI (Data Cache)
+# Si ricorda i vocaboli per 5 minuti. Se ricarichi la pagina, legge dalla RAM (0.01s).
+@st.cache_data(ttl=300) 
+def leggi_tutto_cache():
+    conn = get_connection()
+    cur = conn.cursor()
+    # ... tua query select ...
+    cur.execute("SELECT * FROM vocaboli ORDER BY parola ASC")
+    dati = cur.fetchall()
+    cur.close() 
+    # NON chiudere la conn!
+    return dati
+
+# IMPORTANTE: Quando aggiungi/elimini una parola, devi "rompere" la cache
+def svuota_cache():
+    leggi_tutto_cache.clear()
 
 def cerca_vocaboli(testo_ricerca, filtro_tipo=None):
     conn = get_connection() # 1. Apre la connessione
@@ -81,8 +97,3 @@ def cerca_vocaboli(testo_ricerca, filtro_tipo=None):
     cur.close()           # 4. Chiude il cursore
     return risultati
 
-# ttl=600 significa: "Ricordati questi dati per 10 minuti (600 secondi)"
-# Se ricarichi la pagina entro 10 min, non chiama Neon, legge dalla RAM.
-@st.cache_data(ttl=600)
-def leggi_tutto_cache():
-    return leggi_tutto() # Chiama la funzione vera

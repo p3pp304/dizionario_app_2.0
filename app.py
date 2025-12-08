@@ -1,5 +1,5 @@
 import streamlit as st
-from config_db import init_db, aggiungi_parola, leggi_tutto, cerca_vocaboli
+from config_db import init_db, aggiungi_parola, cerca_vocaboli, leggi_tutto_cache
 from ai_tools import analizza_con_gemini
 from view import visualizza_a_griglia, visualizza_per_lettera        
 
@@ -12,7 +12,7 @@ def pop_up_salvataggio(dati_da_salvare):
     # Input password dentro il pop-up
     password = st.text_input("Inserisci Password", type="password")
     
-    if st.button("Conferma", type="primary"):
+    if st.button("Conferma", type="primary"):                               
         if password == st.secrets["admin"]["password"]:
             
             # --- LOGICA DI SALVATAGGIO ---
@@ -32,8 +32,11 @@ def pop_up_salvataggio(dati_da_salvare):
                 progress_bar.progress((i + 1) / total)
             
             st.success("✅ Salvataggio completato!")
-            
-            # Pulizia e Riavvio
+
+            # --- OTTIMIZZAZIONE 1: SVUOTA LA CACHE ---
+            # Costringe Streamlit a riscaricare i dati aggiornati al prossimo riavvio
+            leggi_tutto_cache.clear()
+            # --- OTTIMIZZAZIONE 2: RESET DELLO STATO ---
             st.session_state.risultati_ai = None
             st.rerun()
             
@@ -133,7 +136,8 @@ with tab_man:
 
 # 2. VISUALIZZA IL DATABASE
 st.markdown("Vocabulary")
-dati = leggi_tutto()
+
+dati = leggi_tutto_cache() # <--- Usamo la versione cacheata
 
 # 1. BARRA DI RICERCA E FILTRI
 # Usiamo le colonne per mettere tutto sulla stessa riga
