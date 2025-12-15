@@ -1,9 +1,12 @@
 import streamlit as st
+from gtts import gTTS
+import io
 
 def visualizza_a_griglia(dati):
     col_sx, col_dx = st.columns(2)
     for indice, riga in enumerate(dati):
         # 1. spacchettiamo TUTTI i dati nell'ordine della query SQL
+        id=riga[0]
         parola = riga[1]
         tipo = riga[3]
         definizione = riga[2]
@@ -27,6 +30,13 @@ def visualizza_a_griglia(dati):
                     st.write(f"Contrari: {contrari}")
                 if note:
                     st.write(f"{note}")
+                # --- AGGIUNTA AUDIO ---
+                # Creiamo un buffer di memoria (non salviamo file su disco per velocità)
+                if st.button(f"🔊 Ascolta", key=f"btn_audio_{id}"):
+                    tts = gTTS(text=parola, lang='en')
+                    audio_fp = io.BytesIO()    #Crea un "file virtuale" direttamente nella memoria RAM del server. È temporaneo e velocissimo
+                    tts.write_to_fp(audio_fp)  #Non salvare un file MP3 sul disco, scrivi i dati audio direttamente dentro questo oggetto in memoria RAM"
+                    st.audio(audio_fp, format='audio/mp3', start_time=0)
 
 
 # --- QUESTA È LA NUOVA FUNZIONE DI RAGGRUPPAMENTO ---

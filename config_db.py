@@ -77,7 +77,7 @@ def cerca_vocaboli(testo_ricerca, filtro_tipo=None):
     query = """
         SELECT *
         FROM vocaboli 
-        WHERE (parola ILIKE %s AND definizione ILIKE %s)
+        WHERE (parola ILIKE %s OR definizione ILIKE %s)
     """    # ILIKE con % cerca il testo parziale ignorando maiuscole/minuscole
     params = [f"%{testo_ricerca}%", f"%{testo_ricerca}%"]
     
