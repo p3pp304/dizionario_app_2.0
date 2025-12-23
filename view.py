@@ -53,9 +53,14 @@ def visualizza_per_lettera(dati_completi):
     
     for riga in dati_completi:
         parola = riga[1]
+        
+        # Controlla se la parola è None, vuota o solo spazi
+        if not parola or str(parola).strip() == "":
+            continue  # Salta questo giro del ciclo e passa alla prossima parola
+        
         # Prendiamo la prima lettera e la rendiamo maiuscola
         lettera_iniziale = parola[0].upper()
-        
+
         # Se la lettera è un numero o simbolo, la mettiamo sotto '#'
         if not lettera_iniziale.isalpha():
             lettera_iniziale = "#"
